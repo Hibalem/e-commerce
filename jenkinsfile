@@ -3,43 +3,33 @@ pipeline {
     environment {
         AWS_REGION = "us-east-1"
         CLUSTER_NAME = "my-cluster"
-        USER_IMAGE = "mydockerhub/user:v${BUILD_NUMBER}"
-        PRODUCT_IMAGE = "mydockerhub/product:v${BUILD_NUMBER}"
-        ORDER_IMAGE = "mydockerhub/order:v${BUILD_NUMBER}"
+        DOCKER_HUB = "yourdockerhub"
     }
     stages {
         stage('Checkout') {
             steps {
-                git 'https://github.com/Hibalem/e-commerce.git'
+                git 'https://github.com/Hibalem/e-commerce.git'  // Your repo
             }
         }
-        stage('Build Docker Images') {
+        stage('Build and Push Docker Images') {
             steps {
                 script {
-                    sh 'cd user-service && docker build -t ${USER_IMAGE} . && docker push ${USER_IMAGE}'
-                    sh 'cd product-service && docker build -t ${PRODUCT_IMAGE} . && docker push ${PRODUCT_IMAGE}'
-                    sh 'cd order-service && docker build -t ${ORDER_IMAGE} . && docker push ${ORDER_IMAGE}'
+                    sh 'docker build -t $DOCKER_HUB/user-service:v1 ./user-service'
+                    sh 'docker push $DOCKER_HUB/user-service:v1'
+                    sh 'docker build -t $DOCKER_HUB/product-service:v1 ./product-service'
+                    sh 'docker push $DOCKER_HUB/product-service:v1'
+                    sh 'docker build -t $DOCKER_HUB/order-service:v1 ./order-service'
+                    sh 'docker push $DOCKER_HUB/order-service:v1'
                 }
             }
         }
         stage('Deploy to Kubernetes') {
             steps {
                 script {
-                    sh 'aws eks update-kubeconfig --region ${AWS_REGION} --name ${CLUSTER_NAME}'
-                    sh 'kubectl apply -f k8s/'
-                    sh 'kubectl set image deployment/user-deployment user=${USER_IMAGE}'
-                    sh 'kubectl set image deployment/product-deployment product=${PRODUCT_IMAGE}'
-                    sh 'kubectl set image deployment/order-deployment order=${ORDER_IMAGE}'
-                    sh 'kubectl rollout status deployment/user-deployment'
-                    sh 'kubectl rollout status deployment/product-deployment'
-                    sh 'kubectl rollout status deployment/order-deployment'
+                    sh 'aws eks update-kubeconfig --region $AWS_REGION --name $CLUSTER_NAME'
+                    sh 'kubectl apply -f k8s/'  // Directory with YAMLs
                 }
             }
-        }
-    }
-    post {
-        always {
-            sh 'docker rmi ${USER_IMAGE} ${PRODUCT_IMAGE} ${ORDER_IMAGE} || true'
         }
     }
 }
