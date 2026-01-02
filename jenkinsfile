@@ -1,0 +1,35 @@
+pipeline {
+  agent any
+  environment {
+    AWS_REGION = "us-east-1"
+    CLUSTER_NAME = "my-cluster"
+  }
+  stages {
+    stage('Build Docker Images') {
+      steps {
+        script {
+          sh 'docker build -t user-service ./services/user-service'
+          sh 'docker build -t product-service ./services/product-service'
+          sh 'docker build -t order-service ./services/order-service'
+        }
+      }
+    }
+    stage('Push to ECR') {
+      steps {
+        script {
+          withAWS(credentials: 'aws-credentials') {
+            sh 'aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 891377219096.dkr.ecr.us-east-1.amazonaws.com'
+            sh 'docker tag user-service:latest 891377219096.dkr.ecr.us-east-1.amazonaws.com/user-service:latest && docker push 891377219096.dkr.ecr.us-east-1.amazonaws.com/user-service:latest'
+          }
+        }
+      }
+    }
+    stage('Deploy to Kubernetes') {
+      steps {
+        script {
+          sh 'kubectl apply -f k8s/app-deployment.yml'
+        }
+      }
+    }
+  }
+}
