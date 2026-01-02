@@ -9,7 +9,7 @@ pipeline {
       steps {
         script {
           sh 'docker build -t user-service ./services/user-service'
-          sh 'docker build -t product-service ./services/product-service'
+          //sh 'docker build -t product-service ./services/product-service'
           sh 'docker build -t order-service ./services/order-service'
         }
       }
