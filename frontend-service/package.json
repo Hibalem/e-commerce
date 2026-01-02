@@ -1,6 +1,0 @@
-{
-  "name": "frontend-service",
-  "version": "0.1.0",
-  "dependencies": { "react": "^18.0.0", "axios": "^1.4.0" },
-  "scripts": { "start": "react-scripts start" }
-}
