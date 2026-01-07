@@ -1,0 +1,22 @@
+pipeline {
+  agent any
+  environment {
+    KUBECONFIG = credentials('kubeconfig') 
+  stages {
+    stage('Build Docker Images') {
+      steps {
+        sh 'docker build -t yourdockerhub/user-service:v1 ./order-service'
+        sh 'docker push yourdockerhub/user-service:v1'
+        sh 'docker build -t yourdockerhub/product-service:v1 ./order-service'
+        sh 'docker push yourdockerhub/product-service:v1'
+        sh 'docker build -t yourdockerhub/order-service:v1 ./order-service'
+        sh 'docker push yourdockerhub/order-service:v1'
+      }
+    }
+    stage('Deploy to k3s') {
+      steps {
+        sh 'kubectl apply -f app-deployment.yml'
+      }
+    }
+  }
+}

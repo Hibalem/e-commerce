@@ -1,0 +1,119 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: order-service
+spec:
+  replicas: 1  # Reduced for cost
+  selector:
+    matchLabels:
+      app: order-service
+  template:
+    metadata:
+      labels:
+        app: order-service
+    spec:
+      containers:
+      - name: order-service
+        image: yourdockerhub/order-service:v1  # Replace with your Docker Hub image
+        ports:
+        - containerPort: 3002
+        env:
+        - name: DB_HOST
+          value: "<RDS_ENDPOINT>"  # e.g., mydb.xxxxx.us-east-1.rds.amazonaws.com
+        - name: DB_USER
+          value: "admin"
+        - name: DB_PASS
+          value: "password123"  # Use a secret in production
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: order-service
+spec:
+  selector:
+    app: order-service
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 3002
+  type: LoadBalancer
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: product-service
+spec:
+  replicas: 1  # Reduced for cost
+  selector:
+    matchLabels:
+      app: product-service
+  template:
+    metadata:
+      labels:
+        app: product-service
+    spec:
+      containers:
+      - name: product-service
+        image: yourdockerhub/product-service:v1  # Replace with your Docker Hub image
+        ports:
+        - containerPort: 3001
+        env:
+        - name: DB_HOST
+          value: "<RDS_ENDPOINT>"  # e.g., mydb.xxxxx.us-east-1.rds.amazonaws.com
+        - name: DB_USER
+          value: "admin"
+        - name: DB_PASS
+          value: "password123"  # Use a secret in production
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: product-service
+spec:
+  selector:
+    app: product-service
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 3001
+  type: LoadBalancer
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-service
+spec:
+  replicas: 1  # Reduced for cost
+  selector:
+    matchLabels:
+      app: user-service
+  template:
+    metadata:
+      labels:
+        app: user-service
+    spec:
+      containers:
+      - name: user-service
+        image: yourdockerhub/user-service:v1  # Replace with your Docker Hub image
+        ports:
+        - containerPort: 3000
+        env:
+        - name: DB_HOST
+          value: "<RDS_ENDPOINT>"  # e.g., mydb.xxxxx.us-east-1.rds.amazonaws.com
+        - name: DB_USER
+          value: "admin"
+        - name: DB_PASS
+          value: "password123"  # Use a secret in production
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: user-service
+spec:
+  selector:
+    app: user-service
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 3000
+  type: LoadBalancer
